@@ -1,6 +1,6 @@
 import React from "react";
-import {Tag} from "./components/Tag";
-import {classSelectors} from "./utils/selectors";
+import { Tag } from "./components/Tag";
+import { classSelectors } from "./utils/selectors";
 
 type Tags = string[];
 
@@ -35,12 +35,23 @@ export default class ReactTagInput extends React.Component<ReactTagInputProps, S
 
     const { input } = this.state;
     const { validator, addOnSpace, removeOnBackspace } = this.props;
+    const { nativeEvent } = e;
+
+    const isImeSpace = e.keyCode === 229 && nativeEvent.code === 'Space' && nativeEvent.isComposing !== true;
 
     // On enter
-    if (e.keyCode === 13 || (addOnSpace && e.keyCode === 32)) {
+    if (e.keyCode === 13 || (addOnSpace && (e.keyCode === 32 || isImeSpace))) {
 
       // Prevent form submission if tag input is nested in <form>
       e.preventDefault();
+
+      if(isImeSpace){
+        const target = e.target as HTMLInputElement;
+        nativeEvent.preventDefault();
+        nativeEvent.stopImmediatePropagation();
+        target.readOnly = true;
+        setTimeout(() => target.readOnly = false, 0);
+      }
 
       // If input is blank, do nothing
       if (input === "") { return; }
@@ -71,7 +82,7 @@ export default class ReactTagInput extends React.Component<ReactTagInputProps, S
   }
 
   addTag = (value: string) => {
-    const tags = [ ...this.props.tags ];
+    const tags = [...this.props.tags];
     if (!tags.includes(value)) {
       tags.push(value);
       this.props.onChange(tags);
@@ -80,14 +91,14 @@ export default class ReactTagInput extends React.Component<ReactTagInputProps, S
   }
 
   removeTag = (i: number) => {
-    const tags = [ ...this.props.tags ];
+    const tags = [...this.props.tags];
     tags.splice(i, 1);
     this.props.onChange(tags);
   }
 
   updateTag = (i: number, value: string) => {
     const tags = [...this.props.tags];
-    const numOccurencesOfValue = tags.reduce((prev, currentValue, index) => prev + (currentValue === value && index !== i ? 1 : 0) , 0);
+    const numOccurencesOfValue = tags.reduce((prev, currentValue, index) => prev + (currentValue === value && index !== i ? 1 : 0), 0);
     if (numOccurencesOfValue > 0) {
       tags.splice(i, 1);
     } else {
