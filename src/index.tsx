@@ -13,6 +13,7 @@ export interface ReactTagInputProps {
   editable?: boolean;
   readOnly?: boolean;
   removeOnBackspace?: boolean;
+  addOnSpace?: boolean;
 }
 
 interface State {
@@ -33,10 +34,10 @@ export default class ReactTagInput extends React.Component<ReactTagInputProps, S
   onInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
 
     const { input } = this.state;
-    const { validator, removeOnBackspace } = this.props;
+    const { validator, addOnSpace, removeOnBackspace } = this.props;
 
     // On enter
-    if (e.keyCode === 13) {
+    if (e.keyCode === 13 || (addOnSpace && e.keyCode === 32)) {
 
       // Prevent form submission if tag input is nested in <form>
       e.preventDefault();
