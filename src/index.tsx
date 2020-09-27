@@ -37,7 +37,9 @@ export default class ReactTagInput extends React.Component<ReactTagInputProps, S
     const { validator, addOnSpace, removeOnBackspace } = this.props;
     const { nativeEvent } = e;
 
-    const isImeSpace = e.keyCode === 229 && nativeEvent.code === 'Space' && nativeEvent.isComposing !== true;
+    const isImeSpace = e.keyCode === 229
+      && (nativeEvent.code === 'Space' || nativeEvent.key === '\u3000')
+      && nativeEvent.isComposing !== true;
 
     // On enter
     if (e.keyCode === 13 || (addOnSpace && (e.keyCode === 32 || isImeSpace))) {
