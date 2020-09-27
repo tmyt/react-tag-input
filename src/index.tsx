@@ -14,6 +14,7 @@ export interface ReactTagInputProps {
   readOnly?: boolean;
   removeOnBackspace?: boolean;
   addOnSpace?: boolean;
+  addOnBlur?: boolean;
 }
 
 interface State {
@@ -32,7 +33,6 @@ export default class ReactTagInput extends React.Component<ReactTagInputProps, S
   }
 
   onInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-
     const { input } = this.state;
     const { validator, addOnSpace, removeOnBackspace } = this.props;
     const { nativeEvent } = e;
@@ -41,11 +41,10 @@ export default class ReactTagInput extends React.Component<ReactTagInputProps, S
 
     // On enter
     if (e.keyCode === 13 || (addOnSpace && (e.keyCode === 32 || isImeSpace))) {
-
       // Prevent form submission if tag input is nested in <form>
       e.preventDefault();
-
-      if(isImeSpace){
+      // Prevent input from IME
+      if (isImeSpace) {
         const target = e.target as HTMLInputElement;
         nativeEvent.preventDefault();
         nativeEvent.stopImmediatePropagation();
@@ -64,11 +63,9 @@ export default class ReactTagInput extends React.Component<ReactTagInputProps, S
 
       // Add input to tag list
       this.addTag(input);
-
     }
     // On backspace or delete
     else if (removeOnBackspace && (e.keyCode === 8 || e.keyCode === 46)) {
-
       // If currently typing, do nothing
       if (input !== "") {
         return;
@@ -76,9 +73,26 @@ export default class ReactTagInput extends React.Component<ReactTagInputProps, S
 
       // If input is blank, remove previous tag
       this.removeTag(this.props.tags.length - 1);
-
     }
+  }
 
+  onInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { input } = this.state;
+    const { validator, addOnBlur } = this.props;
+
+    // If input is blank, do nothing
+    if (addOnBlur) {
+      if (input === "") { return; }
+
+      // Check if input is valid
+      const valid = validator !== undefined ? validator(input) : true;
+      if (!valid) {
+        return;
+      }
+
+      // Add input to tag list
+      this.addTag(input);
+    }
   }
 
   addTag = (value: string) => {
@@ -143,6 +157,7 @@ export default class ReactTagInput extends React.Component<ReactTagInputProps, S
             placeholder={placeholder || "Type and press enter"}
             onChange={this.onInputChange}
             onKeyDown={this.onInputKeyDown}
+            onBlur={this.onInputBlur}
           />
         }
       </div>
