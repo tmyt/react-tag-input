@@ -29,42 +29,28 @@ export default class ReactTagInput extends React.Component<ReactTagInputProps, S
   inputRef: React.RefObject<HTMLInputElement> = React.createRef();
 
   onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ input: e.target.value });
+    const { input } = this.state;
+    const { addOnSpace } = this.props;
+    const tail = e.target.value.slice(-1);
+    // If user entered trailing space,
+    if (addOnSpace && (tail === '\u0020' || tail === '\u3000')) {
+      // Add tag if input validated
+      this.tryAddTag(input);
+    } else {
+      this.setState({ input: e.target.value });
+    }
   }
 
   onInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const { input } = this.state;
-    const { validator, addOnSpace, removeOnBackspace } = this.props;
-    const { nativeEvent } = e;
-
-    const isImeSpace = e.keyCode === 229
-      && (nativeEvent.code === 'Space' || nativeEvent.key === '\u3000')
-      && nativeEvent.isComposing !== true;
+    const { removeOnBackspace } = this.props;
 
     // On enter
-    if (e.keyCode === 13 || (addOnSpace && (e.keyCode === 32 || isImeSpace))) {
+    if (e.keyCode === 13) {
       // Prevent form submission if tag input is nested in <form>
       e.preventDefault();
-      // Prevent input from IME
-      if (isImeSpace) {
-        const target = e.target as HTMLInputElement;
-        nativeEvent.preventDefault();
-        nativeEvent.stopImmediatePropagation();
-        target.readOnly = true;
-        setTimeout(() => target.readOnly = false, 0);
-      }
-
-      // If input is blank, do nothing
-      if (input === "") { return; }
-
-      // Check if input is valid
-      const valid = validator !== undefined ? validator(input) : true;
-      if (!valid) {
-        return;
-      }
-
-      // Add input to tag list
-      this.addTag(input);
+      // Add tag if input validated
+      this.tryAddTag(input);
     }
     // On backspace or delete
     else if (removeOnBackspace && (e.keyCode === 8 || e.keyCode === 46)) {
@@ -80,21 +66,27 @@ export default class ReactTagInput extends React.Component<ReactTagInputProps, S
 
   onInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { input } = this.state;
-    const { validator, addOnBlur } = this.props;
+    const { addOnBlur } = this.props;
 
-    // If input is blank, do nothing
     if (addOnBlur) {
-      if (input === "") { return; }
-
-      // Check if input is valid
-      const valid = validator !== undefined ? validator(input) : true;
-      if (!valid) {
-        return;
-      }
-
-      // Add input to tag list
-      this.addTag(input);
+      // Add tag if input validated
+      this.tryAddTag(input);
     }
+  }
+
+  tryAddTag = (input: string) => {
+    const { validator } = this.props;
+    // If input is blank, do nothing
+    if (input === "") { return; }
+
+    // Check if input is valid
+    const valid = validator !== undefined ? validator(input) : true;
+    if (!valid) {
+      return;
+    }
+
+    // Add input to tag list
+    this.addTag(input);
   }
 
   addTag = (value: string) => {
@@ -103,7 +95,7 @@ export default class ReactTagInput extends React.Component<ReactTagInputProps, S
       tags.push(value);
       this.props.onChange(tags);
     }
-    this.setState({ input: "" });
+    setImmediate(() => this.setState({ input: "" }));
   }
 
   removeTag = (i: number) => {
