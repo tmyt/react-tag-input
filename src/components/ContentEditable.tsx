@@ -107,7 +107,10 @@ export class ContentEditable extends React.Component<Props> {
   }
 
   focusInputRef = () => {
-    const { inputRef } = this.props;
+    const { inputRef, innerEditableRef } = this.props;
+    if (innerEditableRef && innerEditableRef.current) {
+      innerEditableRef.current.scrollTo({ top: 0, left: 0 });
+    }
     if (inputRef && inputRef.current) {
       inputRef.current.focus();
     }

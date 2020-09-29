@@ -66,6 +66,7 @@ $reactTagMarginPadding: 0.1875em;
     line-height: 1;
     background: $reactTagColorGray;
     border-radius: $reactTagBorderRadius;
+    max-width: 100%;
   }
 
   @at-root #{&}__tag__content {
@@ -73,10 +74,17 @@ $reactTagMarginPadding: 0.1875em;
     border: none;
     white-space: nowrap;
     padding: 0 $reactTagMarginPadding * 2.5;
+    text-overflow: ellipsis;
+    overflow: hidden;
+
+    &:focus {
+      text-overflow: unset;
+    }
   }
 
   @at-root #{&}__tag__remove {
 
+    flex-shrink: 0;
     position: relative;
     height: $reactTagFontSize * 2;
     width: $reactTagFontSize * 2;
